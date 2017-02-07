@@ -38,5 +38,23 @@ module ORGM
 		DisplayCategory = Ammo,
         Icon = AmSmP100RndBox,
     }
+	
+	item Box4570
+    {
+        Weight = 0.1,
+        Type = Normal,
+        DisplayName = Small Caliber Pistol 100 rnd Box,
+		DisplayCategory = Ammo,
+        Icon = Am4570Box,
+    }
+	
+	item Box4570HP
+    {
+        Weight = 0.1,
+        Type = Normal,
+        DisplayName = Small Caliber Pistol 100 rnd Box,
+		DisplayCategory = Ammo,
+        Icon = Am4570HPBox,
+    }
  
 }

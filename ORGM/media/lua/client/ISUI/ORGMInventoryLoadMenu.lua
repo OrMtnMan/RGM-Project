@@ -613,6 +613,10 @@ Events.OnFillInventoryObjectContextMenu.Add(ORGMInventoryLoadMenu.createMenu); -
 			"380Rounds",
 			"380HPRounds",
 			};
+	Ammolist4570 = {
+			"4570Rounds",
+			"4570HPRounds",
+			};
 			
 	Ammoindexlist = {
 			"357Rounds",
@@ -683,7 +687,11 @@ Events.OnFillInventoryObjectContextMenu.Add(ORGMInventoryLoadMenu.createMenu); -
 			"30HPRounds",
 			"303Rounds",
 			"303HPRounds",
+			"4570Rounds",
+			"4570HPRounds",
 			};
+			
+			
 			
 	Ammoloadtext= {
 			"Load with .357 Mag. FMJ rounds",
@@ -754,6 +762,8 @@ Events.OnFillInventoryObjectContextMenu.Add(ORGMInventoryLoadMenu.createMenu); -
 			"Load with .30 carbine HP rounds",
 			"Load with .303 Brit. FMJ rounds",
 			"Load with .303 Brit. HP rounds",
+			"Load with .45-70 rounds",
+			"Load with .45-70 HP rounds",
 			};
 			
 	Ammoshelllist = {
@@ -825,6 +835,8 @@ Events.OnFillInventoryObjectContextMenu.Add(ORGMInventoryLoadMenu.createMenu); -
 			"30Shell",
 			"303Shell",
 			"303Shell",
+			"4570Shell",
+			"4570HPShell",
 			};
 			
 

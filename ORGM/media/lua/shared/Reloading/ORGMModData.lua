@@ -1028,6 +1028,37 @@ local UziMag50 = { type = "UziMag50",
 	maxCapaity = 50,
 	reloadTime = 30,
 	rackTime = 10};
+	
+--**4570
+	local Box4570 = { type = "Box4570",
+	moduleName = 'ORGM',
+	reloadClass = 'ORGMLoadClass',
+	ammoType = 'Ammolist4570',
+	loadStyle = 'internal',
+	shootSound = 'none',
+	clickSound = nil,
+	ejectSound = 'ORGMMagLoad',
+	insertSound = 'ORGMMagLoad',
+	rackSound = 'ORGMMagLoad',
+	containsClip = 0,
+	maxCapaity = 50,
+	reloadTime = 30,
+	rackTime = 10};
+	
+	local Box4570HP = { type = "Box4570HP",
+	moduleName = 'ORGM',
+	reloadClass = 'ORGMLoadClass',
+	ammoType = 'Ammolist4570',
+	loadStyle = 'internal',
+	shootSound = 'none',
+	clickSound = nil,
+	ejectSound = 'ORGMMagLoad',
+	insertSound = 'ORGMMagLoad',
+	rackSound = 'ORGMMagLoad',
+	containsClip = 0,
+	maxCapaity = 50,
+	reloadTime = 30,
+	rackTime = 10};
 
 --************************************************************************--
 --** ReloadUtil
@@ -1101,3 +1132,5 @@ ORGMLoadUtil:addLoadableType(UziMag25)
 ORGMLoadUtil:addLoadableType(UziMag32)
 ORGMLoadUtil:addLoadableType(UziMag40)
 ORGMLoadUtil:addLoadableType(UziMag50)
+ORGMLoadUtil:addLoadableType(Box4570)
+ORGMLoadUtil:addLoadableType(Box4570HP)
