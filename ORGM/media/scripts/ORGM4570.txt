@@ -1,0 +1,102 @@
+/**        ORMtnMan's Real Gun Mod       **/
+
+module ORGM
+{   
+
+	item Marlin1895GBL
+	{
+		AmmoType	=	Ammolist4570,
+		ImpactSound	=	null,
+		MaxRange	=	22,
+		WeaponSprite	=	sks,
+		SoundVolume	=	75,
+		MinAngle	=	0.95,
+		Type	=	Weapon,
+		MinimumSwingTime	=	0.2,
+		ToHitModifier	=	1.5,
+		NPCSoundBoost	=	1.5,
+		KnockBackOnNoDeath	=	TRUE,
+		Ranged	=	TRUE,
+		SwingAmountBeforeImpact	=	0,
+		ProjectileCount	=	1,
+		ConditionLowerChanceOneIn	=	60,
+		Weight	=	2.5,
+		SplatNumber	=	2,
+		PushBackMod	=	0.2,
+		MaxDamage	=	.8,
+		SubCategory	=	Firearm,
+		ConditionMax	=	10,
+		ShareDamage	=	FALSE,
+		MaxHitCount	=	1,
+		IsAimedHandWeapon	=	TRUE,
+		IsAimedFirearm	=	TRUE,
+		DoorDamage	=	1,
+		UseEndurance	=	FALSE,
+		SwingAnim	=	Rifle,
+		WeaponWeight	=	2.5,
+		DisplayName	=	Marlin 1895GBL,
+		MinRange	=	0.6,
+		SwingTime	=	0.7,
+		MultipleHitConditionAffected	=	FALSE,
+		SwingSound	=	ORGMMarlin60,
+		SoundRadius	=	130,
+		MinDamage	=	0.4,
+		SplatSize	=	2,
+		KnockdownMod	=	1,
+		SplatBloodOnNoDeath	=	TRUE,
+		Icon	=	WeapMarlin1895GBL,
+		RunAnim	=	Run_Weapon2,
+        IdleAnim	=	Idle_Weapon2,
+		CriticalChance	=	20,
+       		AimingPerkCritModifier = 10,
+       		HitChance = 25,
+       		AimingPerkHitChanceModifier = 15,
+       		AimingPerkMinAngleModifier = 0.01,
+       		AimingPerkRangeModifier = 2,
+       		RecoilDelay = 8,
+       		PiercingBullets = FALSE,
+       		SoundGain = 2,
+       		ClipSize = 14,
+       		ReloadTime = 10,
+       		AimingTime = 20,
+       		RequiresEquippedBothHands = TRUE,
+	}
+	
+	
+	item 4570Rounds
+	{
+		CanStack	=	TRUE,
+		Weight		=	0.01,
+		Type		=	Normal,
+		DisplayName	=	.45-70 Rounds,
+		Icon		=	Am4570Rounds,
+	}
+
+	item 4570Box
+	{
+		CanStack	=	TRUE,
+		Weight		=	0.20,
+		Type		=	Normal,
+		DisplayName	=	.45-70 rnd Box,
+		Icon		=	Am4570Box,
+	}
+
+	item 4570HPRounds
+	{
+		CanStack	=	TRUE,
+		Weight		=	0.01,
+		Type		=	Normal,
+		DisplayName	=	.45-70HP Rounds,
+		Icon		=	Am4570HPRounds,
+	}
+
+	item 4570HPBox
+	{
+		CanStack	=	TRUE,
+		Weight		=	0.20,
+		Type		=	Normal,
+		DisplayName	=	.45-70HP rnd Box,
+		Icon		=	Am4570HPBox,
+	}
+	
+}
