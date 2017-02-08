@@ -374,6 +374,8 @@ function ORGMLoadManager:checkLoadConditions() -- allows reloading/unloading usi
 	self.loadWeapon = playerObj:getPrimaryHandItem(); --checks for a gun in the primary hand
 	if self.loadWeapon == nil then --if there is nothing in the main hand it stops the script
 		return;
+	elseif self.loadWeapon:getModData() == nil then
+		self.loadWeapon:setupLoadable()
 	end
 	if (reloadKey or reloadButton) then --actions if the reload key is pressed
 		if self:isWeaponReloadable(self.loadWeapon) then --checks if the weapon is reloadable
