@@ -29,6 +29,12 @@ function ORGMLoadManager:new(player) --initialization of script
     return o;
 end
 
+LoadManager = {}
+LoadManager[1] = ORGMLoadManager:new(0);
+LoadManager[2] = ORGMLoadManager:new(1);
+LoadManager[3] = ORGMLoadManager:new(2);
+LoadManager[4] = ORGMLoadManager:new(3);
+
 aaa = {}
 
 function ORGMLoadManager:getDifficulty() --gets the difficulty
@@ -96,7 +102,7 @@ function ORGMLoadManager:mostLoadedSearch(testData) --returns the most loaded ma
 		for i = 0, items:size()-1 do
 			local currentItem = items:get(i);
 			for index,testMag in ipairs(magTable) do
-				if testMag.type == currentItem.type then
+				if testMag == currentItem:getType() then
 					local currentCap = currentItem:getModData().currentCapacity
 					if currentCap ~= nil then
 						if currentCap > mostAmmo then
@@ -209,17 +215,11 @@ function ORGMLoadManager:autoRackNeeded()
 end
 
 function ORGMLoadManager:loadStarted() --test to see if you are currently reloading
-	if self.loadAction ~= nil then
-		return ISTimedActionQueue.hasAction(self.loadAction)
-	end
-	return false
+	return ISTimedActionQueue.hasAction(self.loadAction)
 end
 
 function ORGMLoadManager:rackingStarted() --test to see if you are currently racking
-	if self.rackingAction ~= nil then
-		return ISTimedActionQueue.hasAction(self.rackingAction)
-	end
-	return false
+	return ISTimedActionQueue.hasAction(self.rackingAction)
 end
 
 function ORGMLoadManager:startLoading() --starts the loading action
@@ -381,10 +381,14 @@ function ORGMLoadManager:checkLoadConditions() -- allows reloading/unloading usi
 		if self:isWeaponReloadable(self.loadWeapon) then --checks if the weapon is reloadable
 			self.loadType = "reload" --sets the script to reload
 			if self.loadWeapon:getModData().loadStyle == 'magfed' and difficulty ~= 1 then
-				self.reloadAmmo = self:mostLoadedSearch(self.loadWeapon:getModData()).type --otherwise it looks for the most loaded magazine, or any magazine if all are empty
-				self:startLoading();
+				if self.loadWeapon:getModData().containsMag == 1 then
+					self:startLoading()
+				else
+					self.reloadAmmo = self:mostLoadedSearch(self.loadWeapon:getModData()):getType() --otherwise it looks for the most loaded magazine, or any magazine if all are empty
+					self:startLoading();
+				end
 			elseif self.loadWeapon:getModData().speedLoader ~= nil and self.loadWeapon:getModData().speedLoader ~= 1 and difficulty ~= 1 then
-				self.reloadAmmo = self:mostLoadedClipSearch(self.loadWeapon:getModData()).type --returns the most loaded speedloader, will not return anything if they are empty
+				self.reloadAmmo = self:mostLoadedClipSearch(self.loadWeapon:getModData()):getType()--returns the most loaded speedloader, will not return anything if they are empty
 				self:startLoading();
 			else
 				self.reloadAmmo = self:ammoSearch(self.loadWeapon:getModData()) --returns first bit of ammo available from the list
@@ -433,24 +437,24 @@ end
 
 aaa.startLoadHook = function(pl) --the hook to allow key press loading
     if pl then
-  	    return ORGMLoadManager:new(pl:getPlayerNum()):checkLoadConditions();
-    else return ORGMLoadManager:new(0):checkLoadConditions(); end
+  	    return LoadManager[pl:getPlayerNum()+1]:checkLoadConditions();
+    else return LoadManager[1]:checkLoadConditions(); end
 end
 Events.OnPlayerUpdate.Add(aaa.startLoadHook);
 
 aaa.startRackingHook = function(pl) --the hook for racking
     if pl then
-	    return ORGMLoadManager:new(pl:getPlayerNum()):checkRackConditions();
-    else return ORGMLoadManager:new(0):checkRackConditions(); end
+	    return LoadManager[pl:getPlayerNum()+1]:checkRackConditions();
+    else return LoadManager[1]:checkRackConditions(); end
 end
 Events.OnPlayerUpdate.Add(aaa.startRackingHook);
 
 aaa.fireShotHook = function(wielder, weapon) --the hook for firing scripts
-	return ORGMLoadManager:new(pl:getPlayerNum()):fireShot(wielder, weapon);
+	return LoadManager[pl:getPlayerNum()+1]:fireShot(wielder, weapon);
 end
 Events.OnWeaponSwingHitPoint.Add(aaa.fireShotHook);
 
 aaa.checkLoadedHook = function(character, chargeDelta) --the hook for checking load
-	return ORGMLoadManager:new(pl:getPlayerNum()):checkLoaded(character, chargeDelta);
+	return LoadManager[pl:getPlayerNum()+1]:checkLoaded(character, chargeDelta);
 end
 Hook.Attack.Add(aaa.checkLoadedHook);
