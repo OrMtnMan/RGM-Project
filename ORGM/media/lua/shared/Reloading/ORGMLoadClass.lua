@@ -460,6 +460,10 @@ function ORGMLoadClass:canReload(difficulty) --try to kill the base reload scrip
 	return false
 end
 
+function ORGMLoadClass:canRack(difficulty) --try to kill the base reload script
+	return false
+end
+
 function ORGMLoadClass:syncItemToLoadable(item) --Copies variables from the item to the reloadable script
 	local modData = item:getModData();
 	if(modData.reloadClass ~= nil) then

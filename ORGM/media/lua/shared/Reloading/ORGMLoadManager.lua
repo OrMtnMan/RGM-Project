@@ -202,6 +202,11 @@ function ORGMLoadManager:stopLoad(noSound) --ends the loading script
 	self.rackingaction = nil;
 end
 
+function ORGMLoadManager:stopRacking()
+	self.rackingAction = nil;
+	self.reloadWeapon = nil;
+end
+
 function ORGMLoadManager:rackingNow()
 	local playerObj = getSpecificPlayer(self.playerid)
 	if playerObj:getCharacterActions():isEmpty() then return false end
@@ -422,7 +427,7 @@ function ORGMLoadManager:checkRackConditions()
 	if self.loadable ~= nil and self.loadable:canRack(playerObj) then --checks to see if it is rackable
 		self:startRacking(); --starts the racking script
 	else
-		self:stopLoad(); --kills the action otherwise
+		self:stopRacking(); --kills the action otherwise
 	end
 end
 
