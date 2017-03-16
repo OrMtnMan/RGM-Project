@@ -120,26 +120,35 @@ end
 function ORGMLoadManager:mostLoadedSearch2(magType) --searches for the most loaded iteration of the selected mag
 	local mostAmmo = -1;
 	local mag = nil
+	local testAmt = 0
 	local player = getPlayer()
 	local items = player:getInventory():getItems();
 	for i = 0, items:size()-1 do
 		local currentItem = items:get(i);
-		local requiredMagData = ORGMLoadUtil:getLoadableData(magType)
-		local currentLoadable = ORGMLoadUtil:setupLoadable(currentItem, requiredMagData);
-		if(currentLoadable ~= nil) then
-			if(currentLoadable.type == requiredMagData.type) then
-				if(currentLoadable.currentCapacity > mostAmmo) then
-					mag = currentItem;
-					mostAmmo = currentLoadable.currentCapacity;
-				end
+		if(magType == currentItem:getType()) then
+			if currentItem:getModData().currentCapacity == nil then
+				testAmt = -1
+			else
+				testAmt = currentItem:getModData().currentCapacity
+			end
+			print (testAmt)
+			if(testAmt > mostAmmo) then
+				mag = currentItem;
+				mostAmmo = currentItem:getModData().currentCapacity;
+				print(mag)
+				print(mostAmmo)
 			end
 		end
 	end
+	print(mag)
 	return mag
 end
 
 function ORGMLoadManager:isWeaponReloadable(weapon)
 	local weaponData = weapon:getModData();
+	if weaponData.maxCapacity == nil then
+		weaponData.maxCapacity = 0
+	end
 	if weaponData.currentCapacity < weaponData.maxCapacity or weaponData.loadStyle == 'magfed' then --if the gun is fully loaded or if the gun is mag fed return false
 		local ammoAvailable = false
 		local difficulty = self.getDifficulty()
@@ -316,11 +325,12 @@ function ORGMLoadManager:startReloadFromUi(item, ammo) --starts the reloading pr
 	if (self.loadAction == nil or self:loadStarted() == false) and (self.rackingAction == nil or self:rackingStarted() == false) then --makes sure there is no action going
 		self.loadWeapon = item;
 		self.reloadAmmo = ammo;
+		self.reloadMag = nil
 		if self.reloadAmmo ~= nil then
-			if self.reloadAmmo.reloadClass ~= nil then --test to ignore this if it is not a magazine
-				self.reloadMag = self:mostLoadedSearch2(ammo); --checks for the most loaded magazine if applicable
-			else
-				self.reloadMag = nil; --set to ignore if not a mag or clip
+			for i,v in pairs(Magindexlist) do --test to ignore this if it is not a magazine
+				if ammo == v then
+					self.reloadMag = self:mostLoadedSearch2(ammo); --checks for the most loaded magazine if applicable
+				end
 			end
 		end
 		self.loadType = "reload";
@@ -423,8 +433,8 @@ function ORGMLoadManager:checkRackConditions()
 	if self.loadWeapon == nil then --if there is nothing in the main hand it stops the script
 		return;
 	end
-	self.loadable = ORGMLoadUtil:getLoadableWeapon(self.reloadWeapon, playerObj); --gets weapon info
-	if self.loadable ~= nil and self.loadable:canRack(playerObj) then --checks to see if it is rackable
+	self.loadable = LoadUtil:getLoadableWeapon(self.reloadWeapon, playerObj); --gets weapon info
+	if self.loadable ~= nil and self.loadable:ORGMcanRack(playerObj) then --checks to see if it is rackable
 		self:startRacking(); --starts the racking script
 	else
 		self:stopRacking(); --kills the action otherwise

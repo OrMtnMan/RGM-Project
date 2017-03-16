@@ -70,7 +70,9 @@ function ORGMLoadClass:loadPerform(char, square, difficulty, loadable, ammotoloa
 		if self.ammoLoaded == nil then
 			self.ammoLoaded = {}
 		end
+		print(ammotoload)
 		local loadableWeight = loadable:getActualWeight()
+		local loadableWeight2 = loadable:getWeight()
 		local reloadAmmo = char:getInventory():FindAndReturn(ammotoload)
 		local weightToAdd = 0
 		if difficulty == 1 then --if it is on easy, it does the easy reload
@@ -122,14 +124,20 @@ function ORGMLoadClass:loadPerform(char, square, difficulty, loadable, ammotoloa
 					char:getXp():AddXP(Perks.Reloading, 1);
 					self.reloadInProgress = false;
 				elseif self.containsMag == 0 then
+					reloadAmmo = ORGMLoadManager:mostLoadedSearch2(ammotoload)
 					local ammoWeight = reloadAmmo:getActualWeight()
 					local reloadData = reloadAmmo:getModData()
+					if reloadData == nil then
+						reloadData = reloadAmmo:setUpLoadable()
+					end
 					char:playSound(self.insertSound, false);
 					self.currentCapacity = reloadData.currentCapacity;
+					if self.currentCapacity == nil then
+						self.currentCapacity = 0
+					end
 					self.maxCapacity = reloadData.maxCapacity;
 					self.ammoLoaded = reloadData.ammoLoaded;
 					loadable:setActualWeight(loadableWeight + ammoWeight)
-					loadable:setWeight(loadableWeight + ammoWeight)
 					loadable:setCustomWeight(true)
 					self.magInserted = reloadAmmo:getFullType();
 					char:getInventory():Remove(reloadAmmo);
@@ -460,8 +468,29 @@ function ORGMLoadClass:canReload(difficulty) --try to kill the base reload scrip
 	return false
 end
 
-function ORGMLoadClass:canRack(difficulty) --try to kill the base reload script
+function ORGMLoadClass:canRack(chr) --try to kill the base reload script
 	return false
+end
+
+function ORGMLoadClass:ORGMcanRack(chr) --try to kill the base reload script
+	if self.canRack ~= nil then
+		if LoadManager[1]:getDifficulty() < 3 then
+			if self.chambering ~= nil then
+				if self.roundChambered ~= nil then
+					for i,v in pairs() do
+						if v == self.roundChambered then
+							return false
+						end
+					end
+					return true
+				else
+					return self.currentCapacity > 0
+				end
+			end
+		else
+			return true
+		end
+	end
 end
 
 function ORGMLoadClass:syncItemToLoadable(item) --Copies variables from the item to the reloadable script
@@ -527,6 +556,8 @@ function ORGMLoadClass:setupLoadable(item, v) --initial setup only. Sets up all 
 	modData.loadStyle = v.loadStyle;
 	modData.shootsound = v.shootsound;
 	modData.reloadTime = v.reloadTime;
+	modData.chambering = v.chambering;
+	modData.canRack = v.canRack;
 	modData.ammoChambered = nil;
 	modData.ammoLoaded = nil;
 	modData.containsMag = 0;

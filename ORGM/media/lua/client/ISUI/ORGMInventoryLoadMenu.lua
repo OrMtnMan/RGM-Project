@@ -160,9 +160,9 @@ ORGMInventoryLoadMenu.createMenu = function(player, context, items) --creating t
 		if not isOpen and isOpenable and not isAction  then --lets you manually close the gun for reloading
 			local closeOption = context.addOption("Close, Done Reloading", items, ORGMLoadManager:closeFromUi(testItem), playerObj)
 		end
-		if isRackable and not isAction then --lets you manually rack via ui... inefficient but might as well give the option...
-			local rackOption = context.addOption("Rack/Pull Hammer", items, ORGMLoadManager:rackFromUi(testItem), playerObj)
-		end
+	--	if isRackable and not isAction then --lets you manually rack via ui... inefficient but might as well give the option...
+	--		local rackOption = context.addOption("Rack/Pull Hammer", items, ORGMLoadManager:rackFromUi(testItem), playerObj)
+	--	end
     end
 end
 

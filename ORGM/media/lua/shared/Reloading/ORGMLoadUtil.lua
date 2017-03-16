@@ -3,6 +3,7 @@ require "Reloading/ORGMLoadClass"
 
 ORGMLoadUtil = ISBaseObject:derive("ORGMLoadUtil");
 
+
 function ORGMLoadUtil:initialise()
 
 end
@@ -14,6 +15,8 @@ function ORGMLoadUtil:new()
 	return o;
 end
 
+
+LoadUtil = ORGMLoadUtil:new();
 
 	loadableList = {};
 	ORGMplayerData = {};
