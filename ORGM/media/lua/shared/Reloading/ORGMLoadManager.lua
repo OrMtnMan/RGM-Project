@@ -131,16 +131,12 @@ function ORGMLoadManager:mostLoadedSearch2(magType) --searches for the most load
 			else
 				testAmt = currentItem:getModData().currentCapacity
 			end
-			print (testAmt)
 			if(testAmt > mostAmmo) then
 				mag = currentItem;
 				mostAmmo = currentItem:getModData().currentCapacity;
-				print(mag)
-				print(mostAmmo)
 			end
 		end
 	end
-	print(mag)
 	return mag
 end
 
@@ -213,7 +209,7 @@ end
 
 function ORGMLoadManager:stopRacking()
 	self.rackingAction = nil;
-	self.reloadWeapon = nil;
+	self.loadWeapon = nil;
 end
 
 function ORGMLoadManager:rackingNow()
@@ -225,7 +221,7 @@ end
 function ORGMLoadManager:autoRackNeeded()
 	local playerObj = getSpecificPlayer(self.playerid)
 	if self:getDifficulty() == 3 and playerObj:getJoypadBind() == -1 then return false end
-	return self.reloadable:canRack(playerObj)
+	return self.loadable:ORGMcanRack(playerObj)
 end
 
 function ORGMLoadManager:loadStarted() --test to see if you are currently reloading
@@ -266,7 +262,7 @@ function ORGMLoadManager:startClosing() --starts the close action
 	local panicLevel = moodles:getMoodleLevel(MoodleType.Panic);
 	self.loadable = ORGMLoadUtil:getLoadableWeapon(self.loadWeapon, player);
 	self.openAction = ORGMLoadAction:new(self, player, "close", player:getSquare(),
-		(self.reloadable.openCloseTime*player:getReloadingMod())+(panicLevel*30))
+		(self.loadable.openCloseTime*player:getReloadingMod())+(panicLevel*30))
 	ISTimedActionQueue.add(self.openAction)
 end
 
@@ -276,7 +272,7 @@ function ORGMLoadManager:startOpening() --starts the open action
 	local panicLevel = moodles:getMoodleLevel(MoodleType.Panic);
 	self.loadable = ORGMLoadUtil:getLoadableWeapon(self.loadWeapon, player);
 	self.openAction = ORGMLoadAction:new(self, player, "open", player:getSquare(),
-		(self.reloadable.openCloseTime*player:getReloadingMod())+(panicLevel*30))
+		(self.loadable.openCloseTime*player:getReloadingMod())+(panicLevel*30))
 	ISTimedActionQueue.add(self.openAction)
 end
 
@@ -286,7 +282,7 @@ function ORGMLoadManager:ocSlideBoltStart() --starts the half rack action
 	local panicLevel = moodles:getMoodleLevel(MoodleType.Panic);
 	self.loadable = ORGMLoadUtil:getLoadableWeapon(self.loadWeapon, player);
 	self.openAction = ORGMLoadAction:new(self, player, self.loadType, player:getSquare(),
-		(self.reloadable.rackTime/2*player:getReloadingMod())+(panicLevel*30))
+		(self.loadable.rackTime/2*player:getReloadingMod())+(panicLevel*30))
 	ISTimedActionQueue.add(self.openAction)
 end
 
@@ -295,9 +291,9 @@ function ORGMLoadManager:startRacking() --starts the racking action
 	local moodles = player:getMoodles();
 	local panicLevel = moodles:getMoodleLevel(MoodleType.Panic);
 	self.loadable = ORGMLoadUtil:getLoadableWeapon(self.loadWeapon, player);
-	self.rackAction = ORGMRackAction:new(self, player, player:getSquare(),
-		(self.reloadable.rackTime*player:getReloadingMod())+(panicLevel*30))
-	ISTimedActionQueue.add(self.rackAction)
+	self.rackingAction = ORGMRackAction:new(self, player, player:getSquare(),
+		(self.loadable.rackTime*player:getReloadingMod())+(panicLevel*30))
+	ISTimedActionQueue.add(self.rackingAction)
 end
 
 function ORGMLoadManager:stopLoadSuccess() --either continues the loading script for loose rounds or, ends it and clears the queue
@@ -426,19 +422,55 @@ function ORGMLoadManager:checkRackConditions()
 	if self:loadStarted() or self:rackingStarted() then return end --doesn't allow if there is an action in process
 	local playerObj = getSpecificPlayer(self.playerid)
 	local keyboard = self.playerid == 0
-	if keyboard and isKeyDown(Keyboard.KEY_R) then return end --kills it if any other button is pressed doen
+	if keyboard and isKeyDown(Keyboard.KEY_R) then return end --kills it if any other button is pressed down
 	if keyboard and isMouseButtonDown(0) then return end
 	if keyboard and self:getDifficulty() == 3 and not (isKeyDown(getCore():getKey("Rack Firearm")) or playerObj:getJoypadBind() ~= -1) then return end
 	self.loadWeapon = playerObj:getPrimaryHandItem(); --points to the gun in the main hand
 	if self.loadWeapon == nil then --if there is nothing in the main hand it stops the script
 		return;
 	end
-	self.loadable = LoadUtil:getLoadableWeapon(self.reloadWeapon, playerObj); --gets weapon info
+	self.loadable = LoadUtil:getLoadableWeapon(self.loadWeapon, playerObj); --gets weapon info
 	if self.loadable ~= nil and self.loadable:ORGMcanRack(playerObj) then --checks to see if it is rackable
 		self:startRacking(); --starts the racking script
 	else
 		self:stopRacking(); --kills the action otherwise
 	end
+end
+
+function ORGMLoadManager:checkLoaded(character, chargeDelta)
+	local weapon = character:getPrimaryHandItem();
+    if ORGMLoadUtil:setUpGun(weapon, character) then
+        self.loadable = ORGMLoadUtil:getLoadableWeapon(weapon, character);
+		if(self.loadable:isLoaded(self:getDifficulty()) == true) then
+			ISTimedActionQueue.clear(character)
+			if(chargeDelta == nil) then
+				character:DoAttack(0);
+			else
+				character:DoAttack(chargeDelta);
+            end
+        elseif self:rackingNow() then
+			-- Don't interrupt the racking action
+        elseif self:autoRackNeeded() then
+			-- interrupt actions so racking can begin before firing
+			ISTimedActionQueue.clear(character)
+        else
+            character:DoAttack(chargeDelta, true, self.loadable.clickSound);
+--	    elseif Calendar.getInstance():getTimeInMillis() - self.lastClickTime > 250 then
+--		    getSoundManager():PlayWorldSound(self.loadable.clickSound, character:getSquare(), 0, 4, 1.0, false);
+--		    self.lastClickTime = Calendar.getInstance():getTimeInMillis()
+        end
+	else
+        character:DoAttack(chargeDelta);
+	end
+    self.loadable = nil;
+end
+
+function ORGMLoadManager:fireShot(wielder, weapon, difficulty)
+	self.loadable = LoadUtil:getLoadableWeapon(weapon, wielder);
+	if(self.loadable ~= nil) then
+		self.loadable:fireShot(weapon, self:getDifficulty());
+	end
+	self.loadable = nil;
 end
 
 function ORGMLoadManager:ORGMindexfinder(key, list) --A function to find the number location of a string in a table
@@ -450,19 +482,19 @@ function ORGMLoadManager:ORGMindexfinder(key, list) --A function to find the num
 	return -1;
 end
 
-aaa.startLoadHook = function(pl) --the hook to allow key press loading
-    if pl then
-  	    return LoadManager[pl:getPlayerNum()+1]:checkLoadConditions();
-    else return LoadManager[1]:checkLoadConditions(); end
-end
-Events.OnPlayerUpdate.Add(aaa.startLoadHook);
-
 aaa.startRackingHook = function(pl) --the hook for racking
     if pl then
 	    return LoadManager[pl:getPlayerNum()+1]:checkRackConditions();
     else return LoadManager[1]:checkRackConditions(); end
 end
 Events.OnPlayerUpdate.Add(aaa.startRackingHook);
+
+aaa.startLoadHook = function(pl) --the hook to allow key press loading
+    if pl then
+  	    return LoadManager[pl:getPlayerNum()+1]:checkLoadConditions();
+    else return LoadManager[1]:checkLoadConditions(); end
+end
+Events.OnPlayerUpdate.Add(aaa.startLoadHook);
 
 aaa.fireShotHook = function(wielder, weapon) --the hook for firing scripts
 	return LoadManager[pl:getPlayerNum()+1]:fireShot(wielder, weapon);

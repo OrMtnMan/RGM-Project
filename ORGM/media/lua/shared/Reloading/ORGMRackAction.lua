@@ -11,6 +11,7 @@ end
 
 function ORGMRackAction:start()
 	self.action:setUseProgressBar(getCore():getOptionRackProgress())
+	print(self.loadable)
 	self.loadable:rackingStart(self.character, self.square, self.mgr.reloadWeapon)
 end
 
@@ -20,7 +21,7 @@ function ORGMRackAction:stop()
 end
 
 function ORGMRackAction:perform()
-	self.loadable:rackingPerform(self.character, self.square, self.loadWeapon)
+	self.loadable:ORGMrackingPerform(self.character, self.square, self.loadWeapon)
 	self.mgr:stopRacking()
 	-- needed to remove from queue / start next.
 	ISBaseTimedAction.perform(self)

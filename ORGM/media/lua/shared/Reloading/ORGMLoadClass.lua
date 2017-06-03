@@ -15,7 +15,7 @@ function ORGMLoadClass:new() --initializing the script, nothing to see here
 end
 
 function ORGMLoadClass:isLoaded(difficulty)	--checks if the gun is loaded with a live round
-	if self.actionType == nil then -- if the item doesn't have an item type it will return false
+	if self.loadStyle == nil then -- if the item doesn't have an item type it will return false
 		return false
 	else
 		if self.isOpen == 1 then
@@ -32,10 +32,11 @@ function ORGMLoadClass:isLoaded(difficulty)	--checks if the gun is loaded with a
 	end
 end
 
-function ORGMLoadClass:fireShot() -- the script for handling effects after a gunshot
+function ORGMLoadClass:fireShot(weapon,difficulty) -- the script for handling effects after a gunshot
 	if self.chambering == 1 then
 	 --don't eject shell if BBs
 	end
+	self:ORGMdamageSet(weapon)
 end
 
 function ORGMLoadClass:loadStart(char, square, difficulty, loadType) --Initiates the reload/unload action
@@ -70,7 +71,6 @@ function ORGMLoadClass:loadPerform(char, square, difficulty, loadable, ammotoloa
 		if self.ammoLoaded == nil then
 			self.ammoLoaded = {}
 		end
-		print(ammotoload)
 		local loadableWeight = loadable:getActualWeight()
 		local loadableWeight2 = loadable:getWeight()
 		local reloadAmmo = char:getInventory():FindAndReturn(ammotoload)
@@ -247,8 +247,8 @@ function ORGMLoadClass:loadPerform(char, square, difficulty, loadable, ammotoloa
 						local chamberedWeight = 0
 						if itemChambered ~= nil then
 							chamberedWeight = itemChambered:getActualWeight() -- removes the weight just in case
-							loadable:setActualWeight(loadableWeight - chamberedWeight)
-							loadable:setWeight(loadableWeight - chamberedWeight)
+							loadable:setActualWeight(loadable:getActualWeight() - chamberedWeight)
+							loadable:setWeight(loadable:getActualWeight() - chamberedWeight)
 							loadable:setCustomWeight(true)
 						end
 					end
@@ -256,8 +256,8 @@ function ORGMLoadClass:loadPerform(char, square, difficulty, loadable, ammotoloa
 						if ORGMLoadManager.ORGMindexfinder(itemChambered, Ammoindexlist) ~= nil then
 							--if the item is a live applicable round, move it to the bottom
 							table.insert(self.ammoLoaded, itemChambered)
-							loadable:setActualWeight(loadableWeight + chamberedWeight)
-							loadable:setWeight(loadableWeight + chamberedWeight)
+							loadable:setActualWeight(loadable:getActualWeight() + chamberedWeight)
+							loadable:setWeight(loadable:getActualWeight() + chamberedWeight)
 							loadable:setCustomWeight(true)
 						elseif itemChambered ~= nil then --if the item isn't an empty nil, it will give you the empty shell before loading a new round
 							char:getCurrentSquare():AddWorldInventoryItem(itemChambered, 0, 0, 0) -- drops the empty shell on the ground for coolness effect
@@ -265,10 +265,11 @@ function ORGMLoadClass:loadPerform(char, square, difficulty, loadable, ammotoloa
 							table.insert(self.ammoLoaded, nil)
 							--This should cycle through the list and drop all the empty shells before loading
 						else --if the chamber is empty (or nil), add a round
+							local loadingWeight = ammotoload:getActualWeight()
 							table.insert(self.ammoLoaded, ammotoload)
 							char:getInventory():RemoveOneOf(ammotoload);
-							loadable:setActualWeight(loadableWeight + chamberedWeight)
-							loadable:setWeight(loadableWeight + chamberedWeight)
+							loadable:setActualWeight(loadable:getActualWeight() + loadingWeight)
+							loadable:setWeight(loadable:getActualWeight() + loadingWeight)
 							loadable:setCustomWeight(true)
 							self.currentCapacity = self.currentCapacity + 1
 							doneAmmoLoad = 1
@@ -276,9 +277,9 @@ function ORGMLoadClass:loadPerform(char, square, difficulty, loadable, ammotoloa
 						end
 					else --otherwise, cycle to the bottom
 						table.insert(self.ammoLoaded, itemChambered)
-						self.Weight = self.Weight + chamberedWeight --increases the weight of the gun with the ammo
-						self.WeaponWeight = self.WeaponWeight + chamberedWeight
-						self.ammoWeight = self.ammoWeight + chamberedWeight --To keep track of loaded ammo weight									
+						loadable:setActualWeight(loadable:getActualWeight() + chamberedWeight)
+						loadable:setWeight(loadable:getActualWeight() + chamberedWeight)
+						loadable:setCustomWeight(true)
 					end
 					chambersToCheck = chambersToCheck - 1
 				end
@@ -423,7 +424,7 @@ end
 
 function ORGMLoadClass:isUnloadable(item, difficulty) -- check to see if a gun has ammo to unload
 	local unloadTest = item.currentCapacity;
-	if item.roundChambered ~= nil and item.roundChambered == 1 then
+	if item.ammoChambered ~= nil then
 		unloadTest = unloadTest + 1
 	end
 	if unloadTest > 0 then
@@ -441,19 +442,29 @@ function ORGMLoadClass:rackingStart(char, square, weapon)
 	end
 end
 
-function ORGMLoadClass:getRackTime()
-	return self.rackTime;
+function ORGMLoadClass:ORGMrackingPerform(char, square, weapon) --add closing of gun if open on rack
+    if(self.currentCapacity > 0) then
+		local ammoRemoved = self.ammoChambered
+		if ammoRemoved ~= nil then
+			char:getCurrentSquare():AddWorldInventoryItem("ORGM."..ammoRemoved, 0, 0, 0)
+			ISInventoryPage.dirtyUI()
+		end
+		self.currentCapacity = self.currentCapacity - 1;
+		self.ammoChambered = self.ammoLoaded[1]
+		if self.ammoChambered ~= nil then
+			self.roundChambered = 1
+		else
+			self.roundChambered = 0
+		end
+		table.remove(self.ammoLoaded,1)
+		ISInventoryPage.dirtyUI();
+		self:syncLoadabletoItem(weapon);
+		self:ORGMdamageSet(weapon)
+	end
 end
 
-function ORGMLoadClass:rackingPerform(char, square, weapon) --add closing of gun if open on rack
-    if(self.currentCapacity > 0) then
-		self.currentCapacity = self.currentCapacity - 1;
-		local ammoRemoved = self.ammoloaded[1]
-		char:getInventory():AddItem(ammoRemoved);
-		table.remove(self.ammoloaded,1)
-		ISInventoryPage.dirtyUI();
-		self:syncReloadableToItem(weapon);
-	end
+function ORGMLoadClass:rackingPerform(char, square, weapon)
+	return
 end
 
 function ORGMLoadClass:tableCount(tabletocheck) --Counts items currently in the table
@@ -472,25 +483,31 @@ function ORGMLoadClass:canRack(chr) --try to kill the base reload script
 	return false
 end
 
-function ORGMLoadClass:ORGMcanRack(chr) --try to kill the base reload script
-	if self.canRack ~= nil then
-		if LoadManager[1]:getDifficulty() < 3 then
-			if self.chambering ~= nil then
-				if self.roundChambered ~= nil then
-					for i,v in pairs() do
-						if v == self.roundChambered then
-							return false
-						end
+function ORGMLoadClass:ORGMcanRack(chr)
+	if LoadManager[1]:getDifficulty() < 3 then
+		if self.chambering ~= nil then
+			if self.ammoChambered ~= nil then
+				for i,v in pairs(Ammoindexlist) do
+					if v == self.ammoChambered then
+						return false
 					end
-					return true
-				else
-					return self.currentCapacity > 0
 				end
+				return true
+			else
+				return self.currentCapacity > 0
 			end
 		else
-			return true
+			return false
 		end
+	else
+		return true
 	end
+end
+
+function ORGMLoadClass:ORGMdamageSet(loadable)
+	local modData = loadable:getModData();
+	local rndCh = modData.ammoChambered
+	print(rndCh)
 end
 
 function ORGMLoadClass:syncItemToLoadable(item) --Copies variables from the item to the reloadable script
@@ -508,6 +525,7 @@ function ORGMLoadClass:syncItemToLoadable(item) --Copies variables from the item
 		self.maxCapacity = modData.maxCapacity;
 		self.shootSound = modData.shootSound;
 		self.reloadTime = modData.reloadTime;
+		self.rackTime = modData.rackTime;
 		self.ammoChambered = modData.ammoChambered;
 		self.ammoLoaded = modData.ammoLoaded;
 		self.containsMag = modData.containsMag;
@@ -517,6 +535,7 @@ function ORGMLoadClass:syncItemToLoadable(item) --Copies variables from the item
 		self.needRotate = modData.needRotate;
 		self.roundChambered = modData.roundChambered;
 		self.slideOpened = modData.slideOpened;
+		self.chambering = modData.chambering
 	end
 end
 
@@ -554,6 +573,7 @@ function ORGMLoadClass:setupLoadable(item, v) --initial setup only. Sets up all 
 	modData.shellType = v.shellType;
 	modData.maxCapacity = v.maxCapacity;
 	modData.loadStyle = v.loadStyle;
+	modData.rackTime = v.rackTime;
 	modData.shootsound = v.shootsound;
 	modData.reloadTime = v.reloadTime;
 	modData.chambering = v.chambering;
@@ -565,7 +585,7 @@ function ORGMLoadClass:setupLoadable(item, v) --initial setup only. Sets up all 
 	modData.cylLoaded = v.cylLoaded;
 	modData.magInserted = nil;
 	modData.needRotate = v.needRotate;
-	modData.roundChambered = nil;
+	modData.roundChambered = 0;
 	modData.slideOpened = self.slideOpened;
 	modData.shootSound = v.shootSound
 	modData.clickSound = v.clickSound
